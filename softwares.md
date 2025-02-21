@@ -1,6 +1,13 @@
+Segue abaixo a documentação detalhada em português brasileiro, em formato Markdown, explicando de forma formal e acessível (utilizando conceitos de "portugol" quando necessário) cada parte do script. Ao final, encontram-se exercícios de fixação com gabarito para auxiliar no aprendizado.
+
+---
+
 # Documentação do Script de Instalação, Configuração, TDD e Logs
 
-Esta documentação tem o objetivo de explicar de forma clara e detalhada cada parte do script, utilizando uma linguagem formal e acessível para iniciantes. Sempre que necessário, utilizaremos conceitos básicos (como pseudocódigo "portugol") para facilitar o entendimento. Ao final, serão propostos exercícios de fixação com um gabarito separado.
+Esta documentação tem o objetivo de explicar, de forma clara e detalhada, as etapas e funcionalidades do script utilizado para automatizar a instalação e configuração de um ambiente Windows. O script foi projetado para ser executado em uma instalação limpa do Windows, garantindo que todas as tarefas necessárias sejam realizadas sem depender de ajustes manuais no sistema, mesmo quando a política de execução de scripts está desabilitada.
+
+> **Observação Importante:**  
+> Em uma instalação padrão do Windows, a política de execução costuma estar definida como “Restricted”, o que impede a execução de scripts. Para contornar esse problema de forma automática, o script possui um trecho inicial que relança a si mesmo utilizando a opção `-ExecutionPolicy Bypass`. Assim, mesmo que o usuário pertença ao grupo Administradores, o script se reinicia com as permissões necessárias, evitando erros relacionados à política de execução.
 
 ---
 
@@ -9,37 +16,45 @@ Esta documentação tem o objetivo de explicar de forma clara e detalhada cada p
 1. [Introdução](#introdução)
 2. [Objetivos](#objetivos)
 3. [Requisitos e Ambiente](#requisitos-e-ambiente)
-4. [Visão Geral do Script](#visão-geral-do-script)
+4. [Estrutura Geral do Script](#estrutura-geral-do-script)
 5. [Descrição Detalhada por Seção](#descrição-detalhada-por-seção)
-    - [Configuração Inicial e Log](#configuração-inicial-e-log)
-    - [Checagem de Privilégios de Administrador](#checagem-de-privilégios-de-administrador)
-    - [Bloco de Testes (TDD) com Pester](#bloco-de-testes-tdd-com-pester)
-    - [Atualizações do Windows](#atualizações-do-windows)
-    - [Instalação de Softwares via Winget](#instalação-de-softwares-via-winget)
-    - [Configuração do MySQL](#configuração-do-mysql)
-    - [Instalação e Configuração do WSL 2](#instalação-e-configuração-do-wsl-2)
-    - [Configuração do Docker para Usuários Convidados](#configuração-do-docker-para-usuários-convidados)
-    - [Instalação do RSAT para Integração com AD](#instalação-do-rsat-para-integração-com-ad)
-    - [Fase Interativa: Renomeação, Configuração do Administrador e Demissão do Usuário Atual](#fase-interativa-renomeação-configuração-do-administrador-e-demissão-do-usuário-atual)
-    - [Verificações Adicionais e Sumário](#verificações-adicionais-e-sumário)
-    - [Prompt Final e Reinicialização do Sistema](#prompt-final-e-reinicialização-do-sistema)
-6. [Exercícios de Fixação](#exercícios-de-fixação)
-7. [Gabarito dos Exercícios](#gabarito-dos-exercícios)
+   - [1. Autorreinício para Bypass da Execução de Scripts](#1-autorreinício-para-bypass-da-execução-de-scripts)
+   - [2. Configuração Inicial e Log](#2-configuração-inicial-e-log)
+   - [3. Checagem de Privilégios de Administrador](#3-checagem-de-privilégios-de-administrador)
+   - [4. Bloco de Testes (TDD) com Pester](#4-bloco-de-testes-tdd-com-pester)
+   - [5. Atualizações do Windows](#5-atualizações-do-windows)
+   - [6. Instalação de Softwares via Winget](#6-instalação-de-softwares-via-winget)
+   - [7. Configuração do MySQL](#7-configuração-do-mysql)
+   - [8. Instalação e Configuração do WSL 2](#8-instalação-e-configuração-do-wsl-2)
+   - [9. Configuração do Docker para Usuários Convidados](#9-configuração-do-docker-para-usuários-convidados)
+   - [10. Instalação do RSAT para Integração com AD](#10-instalação-do-rsat-para-integração-com-ad)
+   - [11. Fase Interativa: Renomeação, Configuração do Administrador e Demissão do Usuário Atual](#11-fase-interativa-renomeação-configuração-do-administrador-e-demissão-do-usuário-atual)
+   - [12. Verificações Adicionais e Sumário](#12-verificações-adicionais-e-sumário)
+   - [13. Prompt Final e Reinicialização do Sistema](#13-prompt-final-e-reinicialização-do-sistema)
+7. [Exercícios de Fixação](#exercícios-de-fixação)
+8. [Gabarito dos Exercícios](#gabarito-dos-exercícios)
 
 ---
 
 ## Introdução
 
-Este script automatiza um conjunto de tarefas essenciais para a preparação de um ambiente Windows, incluindo atualizações do sistema, instalação de softwares, configuração de contas de usuário e ajustes para futura integração em um domínio Active Directory (AD). Adicionalmente, incorpora uma abordagem de TDD (Test-Driven Development) utilizando o módulo Pester para garantir a qualidade e robustez das funções implementadas.
+Este script automatiza um conjunto de tarefas essenciais para a preparação de um ambiente Windows – desde a aplicação de atualizações, instalação de softwares, até a configuração de contas e ajustes de segurança. Além disso, integra práticas de TDD (Test-Driven Development) para validar a execução das funções principais, registrando os resultados e erros em logs específicos.
 
 ---
 
 ## Objetivos
 
-- **Automatizar atualizações e instalações:** Aplicar atualizações do Windows, instalar softwares essenciais e configurar ferramentas como MySQL, WSL 2 e Docker.
-- **Configuração de contas e segurança:** Renomear o computador, habilitar a conta Administrador (com senha que não expira) e rebaixar o usuário atual para o grupo "Guest".
-- **TDD e logs detalhados:** Utilizar o Pester para criar testes automáticos (TDD) e gerar logs detalhados de execução e erros para melhoria contínua.
-- **Preparação para ambiente AD:** Instalar RSAT (Remote Server Administration Tools) para futura integração em um domínio AD.
+- **Automatizar Atualizações e Instalações:**  
+  Aplicar atualizações do Windows (incluindo opcionais), instalar softwares essenciais (via winget) e configurar ferramentas como MySQL, WSL 2 e Docker.
+  
+- **Configuração de Contas e Segurança:**  
+  Renomear o computador, habilitar a conta Administrador (com senha que não expira) e rebaixar o usuário atual para o grupo “Guests”, aumentando a segurança do sistema.
+
+- **Validação com TDD e Logs Detalhados:**  
+  Utilizar o módulo Pester para realizar testes automáticos das funções do script e gerar logs detalhados de execução e erros (tanto de testes quanto de execução), facilitando a identificação e correção de problemas.
+
+- **Preparação para Integração com Domínio AD:**  
+  Instalar RSAT (Remote Server Administration Tools) para permitir a futura integração do ambiente a um domínio Active Directory.
 
 ---
 
@@ -47,248 +62,324 @@ Este script automatiza um conjunto de tarefas essenciais para a preparação de 
 
 - **Sistema Operacional:** Windows 10 ou 11.
 - **Permissões:** O script deve ser executado em uma sessão do PowerShell com privilégios de Administrador.
-- **Módulos necessários:** PSWindowsUpdate, Pester.
+- **Módulos Necessários:** PSWindowsUpdate e Pester.
 - **Ferramentas:** Windows Package Manager (winget).
 
 ---
 
-## Visão Geral do Script
+## Estrutura Geral do Script
 
-O script é dividido em várias etapas:
-
-1. **Configuração Inicial:** Define a política de execução, inicializa logs e estabelece funções para registro de mensagens.
-2. **Checagem de Administrador:** Verifica se o script está sendo executado com privilégios elevados.
-3. **Bloco TDD (Test-Driven Development):** Utiliza o Pester para testar as funções principais.
-4. **Atualizações do Windows:** Aplica atualizações (pré e pós) utilizando o módulo PSWindowsUpdate.
-5. **Instalação de Softwares:** Verifica se os softwares estão instalados e, se não, os instala via winget.
-6. **Configurações Específicas:** Configuração do MySQL, WSL 2, Docker e RSAT.
-7. **Fase Interativa:** Solicita informações do usuário para renomear o computador, configurar a conta Administrador e ajustar a conta do usuário atual.
-8. **Verificações Finais e Reinicialização:** Realiza verificações adicionais, compila um sumário das tarefas e pergunta se deseja reiniciar o sistema.
+O script foi dividido em diversas seções, cada uma responsável por uma etapa do processo de configuração. Ressalta-se o bloco inicial de autorreinício para contornar a política de execução de scripts, que é essencial em instalações limpas do Windows.
 
 ---
 
 ## Descrição Detalhada por Seção
 
-### Configuração Inicial e Log
+### 1. Autorreinício para Bypass da Execução de Scripts
 
-- **O que é feito:**  
-  - Define a política de execução para permitir que o script seja executado.
-  - Inicializa o sistema de logs (arquivo principal e arquivos de erro) e inicia uma transcrição completa da sessão.
-  
-- **Pseudocódigo (portugol):**
-  ```
-  definir política de execução como Bypass
-  iniciar log e transcrição de sessão
-  definir funções para registrar mensagens (INFO e ERROR)
-  ```
+**Objetivo:**  
+Contornar a política “Restricted” (padrão em instalações limpas do Windows) relançando o script com o parâmetro `-ExecutionPolicy Bypass`.
 
-### Checagem de Privilégios de Administrador
+**O que é feito:**  
+Antes de qualquer outra operação, o script verifica se a política de execução atual é diferente de “Bypass”. Caso seja, ele se relança automaticamente com a opção correta, garantindo que o restante do código seja executado sem restrições.
 
-- **O que é feito:**  
-  - Verifica se o usuário atual possui privilégios de Administrador. Se não, registra o erro e encerra o script.
-  
-- **Pseudocódigo:**
-  ```
-  se usuário não for Administrador:
-      registrar erro e encerrar
-  ```
+**Pseudocódigo (Portugol):**
+```
+se (política de execução != "Bypass") então
+    relançar o script com "-ExecutionPolicy Bypass"
+    encerrar execução atual
+fim se
+```
 
-### Bloco de Testes (TDD) com Pester
+---
 
-- **O que é feito:**  
-  - Verifica se o módulo Pester está instalado; caso não esteja, tenta instalá-lo.
-  - Define testes para funções principais (ex.: restrição de acesso ao RSAT, configuração de auto-login para o Guest, etc.) usando mocks.
-  - Se algum teste falhar, registra o erro em um log específico e encerra o script.
-  
-- **Pseudocódigo:**
-  ```
-  se Pester não estiver instalado:
-      instalar Pester
-  importar Pester
-  definir testes para as funções principais usando mocks
-  se algum teste falhar:
-      registrar erro de TDD e encerrar
-  ```
+### 2. Configuração Inicial e Log
 
-### Atualizações do Windows
+**Objetivo:**  
+Estabelecer a política de execução, iniciar a transcrição completa da sessão e definir funções para registro de mensagens (logs).
 
-- **O que é feito:**  
-  - Realiza atualizações do Windows antes e depois das principais tarefas do script, incluindo atualizações opcionais.
-  - Caso a atualização falhe, o erro é registrado, mas o script continua a execução.
-  
-- **Pseudocódigo:**
-  ```
-  tentar instalar atualizações do Windows (incluir opcionais)
-  se atualizações encontradas:
-      instalar atualizações sem reinicialização imediata
-  senão:
-      registrar que nenhuma atualização foi encontrada
-  ```
+**O que é feito:**  
+- Configura a política para permitir a execução.
+- Inicializa arquivos de log (principal, de erros de execução e de erros TDD).
+- Define funções para registrar mensagens com timestamp.
 
-### Instalação de Softwares via Winget
+---
 
-- **O que é feito:**  
-  - Define funções para verificar se um software já está instalado e, caso não esteja, instalá-lo via winget.
-  - Uma lista de softwares é percorrida e cada software é instalado apenas se necessário (idempotência).
-  
-- **Pseudocódigo:**
-  ```
-  para cada software na lista:
-      se software já instalado:
-          pular instalação
-      senão:
-          instalar software via winget
-  ```
+### 3. Checagem de Privilégios de Administrador
 
-### Configuração do MySQL
+**Objetivo:**  
+Garantir que o script seja executado com permissões elevadas, necessárias para realizar alterações no sistema.
 
-- **O que é feito:**  
-  - Se o executável do MySQL existir, o script tenta configurar a senha do usuário "root".
-  - Caso ocorra algum erro, este é registrado.
-  
-- **Pseudocódigo:**
-  ```
-  se mysqladmin.exe existir:
-      definir senha do root como '1234'
-  senão:
-      registrar que o MySQL não foi encontrado
-  ```
+**O que é feito:**  
+Verifica se o usuário atual possui privilégios de Administrador. Se não, o script registra o erro e encerra.
 
-### Instalação e Configuração do WSL 2
+**Pseudocódigo:**
+```
+se (usuário não for Administrador) então
+    registrar erro e encerrar
+fim se
+```
 
-- **O que é feito:**  
-  - Habilita os recursos necessários do Windows para o WSL.
-  - Baixa e instala o kernel do WSL 2 e define-o como padrão.
-  
-- **Pseudocódigo:**
-  ```
-  habilitar recursos WSL e Virtual Machine Platform
-  baixar e instalar atualização do kernel WSL 2
-  definir WSL 2 como padrão
-  ```
+---
 
-### Configuração do Docker para Usuários Convidados
+### 4. Bloco de Testes (TDD) com Pester
 
-- **O que é feito:**  
-  - Adiciona usuários do tipo "Guest" ao grupo "docker-users".
-  - Atualiza a configuração do Docker para limpeza automática de contêineres de usuários convidados.
-  
-- **Pseudocódigo:**
-  ```
-  para cada usuário Guest:
-      adicionar ao grupo docker-users
-  atualizar arquivo de configuração do Docker com limpeza de contêineres de convidados
-  ```
+**Objetivo:**  
+Validar automaticamente o funcionamento das funções principais por meio de testes. Isso permite identificar e registrar falhas antes de executar as operações críticas.
 
-### Instalação do RSAT para Integração com AD
+**O que é feito:**  
+- Verifica e instala (se necessário) o módulo Pester.
+- Define testes para funções principais (como restrição de acesso ao RSAT, configuração de auto-login para o Guest, etc.) usando mocks.
+- Se algum teste falhar, o erro é registrado em um log específico e o script é encerrado.
 
-- **O que é feito:**  
-  - Verifica se a capacidade RSAT (para Active Directory) está disponível e, se não estiver instalada, a instala.
-  
-- **Pseudocódigo:**
-  ```
-  verificar se RSAT para AD está disponível
-  se não estiver instalado:
-      instalar RSAT para AD
-  ```
+**Pseudocódigo:**
+```
+se (Pester não instalado) então
+    instalar Pester
+fim se
+importar Pester
+definir testes para funções principais (com mocks)
+se (algum teste falhar) então
+    registrar erro de TDD e encerrar
+fim se
+```
 
-### Fase Interativa: Renomeação, Configuração do Administrador e Demissão do Usuário Atual
+---
 
-- **O que é feito:**  
-  - Solicita ao usuário um novo nome para o computador e, se diferente do atual, o renomeia.
-  - Habilita a conta Administrador (se não estiver habilitada) e define uma nova senha, garantindo que a senha não expire.
-  - Remove o usuário atual do grupo Administradores e o adiciona ao grupo "Guests".
-  
-- **Pseudocódigo:**
-  ```
-  perguntar novo nome do computador
-  se novo nome for diferente:
-      renomear computador
-  habilitar conta Administrador e definir nova senha (não expira)
-  remover usuário atual do grupo Administradores e adicionar ao grupo Guests
-  ```
+### 5. Atualizações do Windows
 
-### Verificações Adicionais e Sumário
+**Objetivo:**  
+Aplicar atualizações do Windows (pré e pós-processo), incluindo as opcionais, sem que erros interrompam o fluxo do script.
 
-- **O que é feito:**  
-  - Realiza verificações extras para confirmar que:
-    - A conta Administrador está habilitada e com senha que não expira.
-    - O usuário atual foi corretamente movido para o grupo "Guests".
-  - Compila um sumário das etapas realizadas, registrando o status de cada uma.
-  
-- **Pseudocódigo:**
-  ```
-  verificar configurações do Administrador
-  verificar que usuário atual está no grupo Guests
-  compilar resumo das tarefas executadas
-  ```
+**O que é feito:**  
+- Importa o módulo PSWindowsUpdate.
+- Busca por atualizações e as instala sem reinicializar imediatamente.
+- Registra o status da operação.
 
-### Prompt Final e Reinicialização do Sistema
+**Pseudocódigo:**
+```
+tentar importar PSWindowsUpdate
+se (atualizações encontradas) então
+    instalar atualizações sem reinicialização imediata
+senão
+    registrar que não houve atualizações
+fim se
+```
 
-- **O que é feito:**  
-  - Exibe o sumário das tarefas para o usuário e solicita confirmação para reinicializar o sistema.
-  - Se o usuário confirmar, o sistema é reinicializado; caso contrário, o script apenas encerra.
-  
-- **Pseudocódigo:**
-  ```
-  mostrar resumo das tarefas executadas
-  perguntar se deseja reiniciar o sistema
-  se sim:
-      reiniciar
-  senão:
-      encerrar
-  ```
+---
+
+### 6. Instalação de Softwares via Winget
+
+**Objetivo:**  
+Instalar softwares essenciais somente se estes ainda não estiverem presentes no sistema, garantindo idempotência.
+
+**O que é feito:**  
+- Define uma função que verifica se um software já está instalado.
+- Caso não esteja, o software é instalado via winget.
+- Uma lista de softwares é percorrida e cada item é processado.
+
+**Pseudocódigo:**
+```
+para cada software na lista:
+    se (software já instalado) então
+        pular instalação
+    senão
+        instalar software via winget
+fim para
+```
+
+---
+
+### 7. Configuração do MySQL
+
+**Objetivo:**  
+Configurar o MySQL, definindo a senha do usuário “root”, se o executável estiver presente.
+
+**O que é feito:**  
+- Verifica se o arquivo `mysqladmin.exe` existe.
+- Tenta definir a senha “1234” para o usuário root.
+- Registra sucesso ou erro da operação.
+
+**Pseudocódigo:**
+```
+se (mysqladmin.exe existir) então
+    definir senha do root como '1234'
+senão
+    registrar que o MySQL não foi encontrado
+fim se
+```
+
+---
+
+### 8. Instalação e Configuração do WSL 2
+
+**Objetivo:**  
+Preparar o ambiente para o WSL 2, habilitando os recursos necessários e instalando o kernel atualizado.
+
+**O que é feito:**  
+- Habilita os recursos “Windows Subsystem for Linux” e “Virtual Machine Platform”.
+- Baixa e instala o kernel do WSL 2.
+- Define o WSL 2 como versão padrão.
+
+**Pseudocódigo:**
+```
+habilitar recursos WSL e Virtual Machine Platform
+baixar e instalar atualização do kernel WSL 2
+definir WSL 2 como padrão
+```
+
+---
+
+### 9. Configuração do Docker para Usuários Convidados
+
+**Objetivo:**  
+Configurar o Docker para que usuários do tipo “Guest” possam utilizar contêineres de forma controlada.
+
+**O que é feito:**  
+- Adiciona os usuários “Guest” ao grupo “docker-users”.
+- Atualiza o arquivo de configuração do Docker para incluir uma opção de limpeza automática dos contêineres de usuários convidados.
+
+**Pseudocódigo:**
+```
+para cada usuário do tipo Guest:
+    adicionar ao grupo docker-users
+atualizar configuração do Docker para limpar contêineres de convidados
+```
+
+---
+
+### 10. Instalação do RSAT para Integração com AD
+
+**Objetivo:**  
+Instalar as ferramentas RSAT (Remote Server Administration Tools) para Active Directory, preparando o ambiente para integração futura a um domínio.
+
+**O que é feito:**  
+- Verifica se a capacidade RSAT para AD está disponível.
+- Se não estiver instalada, tenta instalá-la.
+- Registra o status da operação.
+
+**Pseudocódigo:**
+```
+verificar disponibilidade do RSAT para AD
+se (não instalado) então
+    instalar RSAT para AD
+fim se
+```
+
+---
+
+### 11. Fase Interativa: Renomeação, Configuração do Administrador e Demissão do Usuário Atual
+
+**Objetivo:**  
+Realizar configurações interativas com o usuário, garantindo ajustes importantes na identidade do sistema e segurança das contas.
+
+**O que é feito:**  
+- **Renomeação do Computador:**  
+  Solicita um novo nome e, se fornecido e diferente do atual, renomeia o computador.
+- **Configuração da Conta Administrador:**  
+  Habilita a conta Administrador (caso não esteja ativa) e solicita uma nova senha, definindo-a como não expirá.
+- **Rebaixamento do Usuário Atual:**  
+  Remove o usuário atual do grupo “Administrators” e o adiciona ao grupo “Guests”.
+
+**Pseudocódigo:**
+```
+perguntar novo nome do computador
+se (novo nome ≠ nome atual) então
+    renomear computador
+fim se
+
+habilitar conta Administrador e definir nova senha (não expira)
+
+remover usuário atual do grupo Administrators
+adicionar usuário atual ao grupo Guests
+```
+
+---
+
+### 12. Verificações Adicionais e Sumário
+
+**Objetivo:**  
+Realizar verificações extras para confirmar que as configurações críticas foram aplicadas corretamente e compilar um resumo das tarefas realizadas.
+
+**O que é feito:**  
+- Verifica se a conta Administrador está habilitada e com senha configurada para não expirar.
+- Verifica se o usuário atual pertence ao grupo “Guests”.
+- Registra um sumário detalhado de cada etapa.
+
+**Pseudocódigo:**
+```
+verificar configurações do Administrador
+verificar que o usuário atual está no grupo Guests
+compilar e registrar um sumário das tarefas executadas
+```
+
+---
+
+### 13. Prompt Final e Reinicialização do Sistema
+
+**Objetivo:**  
+Exibir ao usuário um resumo das operações realizadas e solicitar confirmação para reinicializar o sistema, permitindo que as atualizações sejam aplicadas por completo.
+
+**O que é feito:**  
+- Mostra um resumo das tarefas concluídas.
+- Pergunta se o sistema pode ser reiniciado.
+- Se confirmado, reinicia o computador; caso contrário, encerra o script.
+
+**Pseudocódigo:**
+```
+mostrar resumo das tarefas
+perguntar se deseja reiniciar o sistema
+se (resposta afirmativa) então
+    reiniciar computador
+senão
+    encerrar script
+fim se
+```
 
 ---
 
 ## Exercícios de Fixação
 
-### Exercício 1: Conceitos Básicos do Script
-**Pergunta:** Explique, em suas próprias palavras, qual a importância da verificação de privilégios de Administrador no início do script.  
-**Resposta Esperada:**  
-A verificação de privilégios de Administrador é essencial para garantir que o script tenha permissão para executar operações sensíveis, como alterações no sistema, instalação de softwares e configuração de contas. Sem essas permissões, muitas das tarefas do script falhariam.
+### Exercício 1: Política de Execução de Scripts  
+**Pergunta:** Por que é necessário que o script se relance com a opção `-ExecutionPolicy Bypass` em uma instalação limpa do Windows?  
+**Dica:** Considere a política “Restricted” que vem por padrão.
 
 ---
 
-### Exercício 2: Função de Instalação de Software
-**Pergunta:** Qual a vantagem de utilizar a função `Is-SoftwareInstalled` antes de instalar um software?  
-**Resposta Esperada:**  
-Utilizar a função `Is-SoftwareInstalled` permite que o script verifique se um software já está instalado, evitando instalações desnecessárias. Isso torna o script idempotente e otimizado para ser executado várias vezes sem causar conflitos ou redundâncias.
+### Exercício 2: Função de Verificação de Instalação  
+**Pergunta:** Explique a importância da função `Is-SoftwareInstalled` antes de executar a instalação de um software.  
+**Dica:** Pense em termos de idempotência e eficiência.
 
 ---
 
-### Exercício 3: Bloco TDD com Pester
-**Pergunta:** Por que o script utiliza o módulo Pester e o que significa "TDD" no contexto deste script?  
-**Resposta Esperada:**  
-O módulo Pester é utilizado para automatizar testes que verificam se as funções principais do script estão funcionando corretamente. TDD (Test-Driven Development) é uma abordagem de desenvolvimento que consiste em escrever testes antes do código, garantindo que cada parte funcione como esperado e permitindo a identificação de falhas precocemente.
+### Exercício 3: TDD com Pester  
+**Pergunta:** O que é TDD e como o módulo Pester contribui para a qualidade do script?  
+**Dica:** Considere a abordagem de escrever testes antes do código.
 
 ---
 
-### Exercício 4: Configuração Interativa
-**Pergunta:** Quais são as três principais configurações interativas que o script solicita ao usuário e qual a finalidade de cada uma?  
-**Resposta Esperada:**  
-1. **Renomeação do computador:** Permite ao usuário definir um novo nome para o computador, facilitando a identificação em uma rede.
-2. **Configuração da conta Administrador:** Habilita a conta Administrador e define uma nova senha que não expira, garantindo acesso administrativo seguro.
-3. **Demissão do usuário atual para o grupo "Guests":** Remove o usuário atual do grupo Administradores e o adiciona ao grupo Guests, reforçando a segurança do sistema ao limitar privilégios.
+### Exercício 4: Configurações Interativas  
+**Pergunta:** Quais são os três principais ajustes interativos realizados pelo script e qual a finalidade de cada um?  
+**Dica:** Considere as etapas de renomeação do computador, configuração da conta Administrador e demissão do usuário atual.
 
 ---
 
 ## Gabarito dos Exercícios
 
 1. **Exercício 1:**  
-   A verificação de privilégios de Administrador é fundamental para que o script possa executar tarefas críticas, como instalação de softwares e modificações no sistema, que requerem permissões elevadas. Sem essa verificação, o script pode falhar ou não realizar as alterações desejadas.
+   Em uma instalação limpa do Windows, a política de execução padrão é “Restricted”, o que impede a execução de scripts. O relançamento com `-ExecutionPolicy Bypass` garante que o script possa rodar sem bloqueios, mesmo sem alterações manuais na política.
 
 2. **Exercício 2:**  
-   A função `Is-SoftwareInstalled` permite verificar se um software já está presente no sistema, evitando reinstalações desnecessárias. Isso melhora a eficiência do script e previne possíveis conflitos decorrentes de instalações duplicadas.
+   A função `Is-SoftwareInstalled` verifica se um software já está presente, evitando reinstalações desnecessárias. Isso torna o script idempotente e mais eficiente, evitando conflitos e consumo desnecessário de recursos.
 
 3. **Exercício 3:**  
-   O módulo Pester é utilizado para executar testes automatizados que garantem o funcionamento correto das funções do script. TDD (Test-Driven Development) é uma prática onde os testes são escritos antes do código, permitindo identificar erros de forma precoce e facilitando a manutenção.
+   TDD (Test-Driven Development) é uma metodologia de desenvolvimento onde os testes são escritos antes do código, garantindo que cada função atenda às especificações. O módulo Pester automatiza esses testes, permitindo identificar e corrigir falhas precocemente.
 
 4. **Exercício 4:**  
-   - **Renomeação do computador:** Para que o computador tenha um nome identificável em redes, facilitando a gestão e o controle.
-   - **Configuração da conta Administrador:** Garante que a conta de maior privilégio esteja ativa, com senha segura e sem expiração, garantindo acesso administrativo quando necessário.
-   - **Demissão do usuário atual para o grupo "Guests":** Limita os privilégios do usuário atual para aumentar a segurança do sistema, garantindo que apenas as operações essenciais sejam realizadas com a conta de usuário não privilegiada.
+   - **Renomeação do Computador:** Permite identificar melhor o dispositivo na rede.  
+   - **Configuração da Conta Administrador:** Garante que a conta com maiores privilégios esteja ativa e segura (com senha que não expira).  
+   - **Demissão do Usuário Atual:** Rebaixa o nível do usuário para “Guest”, aumentando a segurança ao limitar privilégios.
 
 ---
 
-Esta documentação foi elaborada para auxiliar na compreensão de cada etapa do script, permitindo que até mesmo iniciantes possam entender os conceitos e a lógica por trás das operações automatizadas. Sinta-se à vontade para revisar os exercícios e testar o script em um ambiente controlado para melhor aprendizado.
+Esta documentação foi elaborada para que mesmo iniciantes possam compreender cada etapa do script e os conceitos utilizados. Experimente executar os exercícios e revise os conceitos para fixar o aprendizado. Caso haja dúvidas, revise os pseudocódigos e as descrições de cada seção para melhor entendimento.
