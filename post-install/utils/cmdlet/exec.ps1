@@ -13,6 +13,10 @@
    $result = Invoke-Cmdlet -CmdletBlock { Get-Service -Name "wuauserv" } -Description "Fetching Windows Update service status"
    Write-Host $result
 #>
+if (-not (Get-Command Write-Log -ErrorAction SilentlyContinue)) {
+   . "$PSScriptRoot\..\logging.ps1"
+}
+
 function Invoke-Cmdlet {
     [CmdletBinding()]
     param(

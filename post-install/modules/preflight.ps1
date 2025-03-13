@@ -16,10 +16,8 @@ if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdent
 # Check if the current execution policy is too restrictive (e.g., "Restricted")
 $currentPolicy = Get-ExecutionPolicy
 if ($currentPolicy -eq "Restricted") {
-    Write-Host "Execution policy is '$currentPolicy'. Relaunching the script with '-ExecutionPolicy Bypass'..."
-    $scriptPath = $MyInvocation.MyCommand.Path
-    Start-Process powershell.exe -ArgumentList "-ExecutionPolicy Bypass -File `"$scriptPath`"" -Verb RunAs
-    exit
+    Write-Host "Execution policy is '$currentPolicy'. Adjusting policy..."
+    Set-ExecutionPolicy Bypass -Scope Process -Force
 }
 
 Write-Host "Pre-flight checks passed. Running as Administrator with an appropriate execution policy."

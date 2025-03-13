@@ -17,6 +17,10 @@
     Install-CmdletModule -ModuleName "PSWindowsUpdate" -ForceInstall
     Forces the installation of PSWindowsUpdate regardless of whether it is already installed.
 #>
+if (-not (Get-Command Write-Log -ErrorAction SilentlyContinue)) {
+    . "$PSScriptRoot\..\logging.ps1"
+}
+
 function Install-CmdletModule {
     [CmdletBinding()]
     param(
@@ -39,6 +43,7 @@ function Install-CmdletModule {
     else {
         Write-Log "Installing module '$ModuleName' (Minimum version: $MinimumVersion)..."
         try {
+            Set-PSRepository -Name "PSGallery" -InstallationPolicy Trusted
             Install-Module -Name $ModuleName -MinimumVersion $MinimumVersion -Force -Scope CurrentUser -ErrorAction Stop
             Write-Log "Module '$ModuleName' installed successfully."
         }
