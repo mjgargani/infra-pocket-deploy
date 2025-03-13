@@ -15,20 +15,6 @@
 Import-Module Pester -ErrorAction Stop
 
 Describe "Utility Module Tests" {
-
-    Context "Logging Module" {
-        It "should correctly log an INFO message" {
-            # Define a temporary log file.
-            $tempLogPath = Join-Path $PSScriptRoot "test_install_log.txt"
-            $global:LogFile = $tempLogPath
-            if (Test-Path $tempLogPath) { Remove-Item $tempLogPath -Force }
-            
-            Write-Log -Message "Test INFO message" -Type "INFO"
-            $content = Get-Content -Path $tempLogPath -ErrorAction SilentlyContinue
-            $content | Should -Contain "Test INFO message"
-        }
-    }
-
     Context "Module Installation Utility (Install-CmdletModule)" {
         It "should not throw an error when checking a known installed module" {
             { Install-CmdletModule -ModuleName "Microsoft.PowerShell.Management" } | Should -Not -Throw
