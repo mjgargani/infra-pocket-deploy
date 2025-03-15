@@ -14,7 +14,7 @@
 #>
 
 # Ensure the logs directory exists.
-$logsDir = Join-Path $PSScriptRoot ".." "logs"
+$logsDir = Join-Path $PSScriptRoot "../logs"
 if (-not (Test-Path $logsDir)) {
     New-Item -ItemType Directory -Path $logsDir | Out-Null
 }
