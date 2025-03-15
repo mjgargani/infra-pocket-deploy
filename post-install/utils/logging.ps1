@@ -44,15 +44,18 @@ function Write-Log {
     [string]$timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
     [string]$logMessage = "[$timestamp] [$Type] $Message"
 
-    # Output to console and append to the single log file.
-    if ($Type -eq "SUCCESS") {
-        Write-Host $logMessage -BackgroundColor Green -ForegroundColor Black
-    } elseif ($Type -eq "ERROR") {
-        Write-Host $logMessage -BackgroundColor Red -ForegroundColor Black
-    } elseif ($Type -eq "WARN") {
-        Write-Host $logMessage -BackgroundColor Yellow -ForegroundColor Black
-    } else {
-        Write-Host $logMessage -BackgroundColor White -ForegroundColor Black
+    # Define the hash table of background colors for each log type.
+    $backgroundColors = @{
+        "SUCCESS" = "Green"
+        "ERROR"   = "Red"
+        "WARN"    = "Yellow"
+        "INFO"    = "White"
     }
+
+    # Obtain the background color based on the log type.
+    [string]$backgroundColor = $backgroundColors[$Type]
+
+    # Output to console and append to the single log file.
+    Write-Host $logMessage -BackgroundColor $backgroundColor -ForegroundColor Black
     Add-Content -Path $global:LogFile -Value $logMessage
 }

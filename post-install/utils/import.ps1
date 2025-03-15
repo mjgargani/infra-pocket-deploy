@@ -22,7 +22,13 @@ foreach ($relativePath in $paths) {
       . $script 
       Write-Log -Message "Utility '$script' loaded"
     } else {
-        Write-Host "[ERROR] Utility '$script' not found" -BackgroundColor Red
+      [string]$message = "[ERROR] Utility '$script' not found"
+      try {
+        Write-Log -Message $message -Type "ERROR"
+      } catch {
+        Write-Host $message -BackgroundColor Red
         exit 1
+      }
+      exit 1
     }
 }

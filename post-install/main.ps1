@@ -11,5 +11,9 @@
 
 # Global absolute path to the directory where the script is located
 [string]$global:ScriptRoot = Split-Path -Parent -Path $MyInvocation.MyCommand.Definition
-
 . (Join-Path -Path $global:ScriptRoot -ChildPath "utils/import.ps1") # Import utility scripts
+
+# Main post-install script
+Write-Log -Message "Post-install script started" -Type "SUCCESS"
+# ...
+Write-Log -Message "Post-install script completed" -Type "SUCCESS"
