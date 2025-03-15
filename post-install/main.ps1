@@ -1,30 +1,15 @@
-# main.ps1
-# Script principal de Pós-instalação
+<#
+.NOTES
+    File Name      : ./main.ps1
+    Author         : Rodrigo Gargani Oliveira
+    Prerequisite   : >= PowerShell 5.1.19041.5607 (Desktop)
+.SYNOPSIS
+    Post-install main script.
+.DESCRIPTION
+    This script is responsible for importing the necessary utility modules and executing the main post-install script.
+#>
 
-# Caminho absoluto para diretório do script
-$ScriptRoot = Split-Path -Parent -Path $MyInvocation.MyCommand.Definition
-. "$ScriptRoot/utils/logging.ps1"
-. "$ScriptRoot/update/powershell.ps1"
+# Global absolute path to the directory where the script is located
+[string]$global:ScriptRoot = Split-Path -Parent -Path $MyInvocation.MyCommand.Definition
 
-# Importação dos utilitários essenciais (condicionalmente)
-# foreach ($script in @(
-#     "$ScriptRoot/utils/cmdlets/install.ps1",
-#     "$ScriptRoot/utils/cmdlets/exec.ps1"
-# )) {
-#     if (Test-Path $script) {
-#         . $script
-#     } else {
-#         Write-Log "O script $script não foi encontrado!" "ERROR"
-#         exit 1
-#     }
-# }
-
-# Execute Preflight
-# . "$ScriptRoot/tests/utils.ps1"
-# . "$ScriptRoot/modules/preflight.ps1"
-
-# Execução dos módulos
-#. "$ScriptRoot/update/windows.ps1"
-#. "$ScriptRoot/install/software.ps1"
-#. "$ScriptRoot/config/gpos.ps1"
-#. "$ScriptRoot/config/user.ps1"
+. (Join-Path -Path $global:ScriptRoot -ChildPath "utils/import.ps1") # Import utility scripts

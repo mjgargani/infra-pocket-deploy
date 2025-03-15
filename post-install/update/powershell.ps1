@@ -1,14 +1,17 @@
 # modules/update/powershell.ps1
-<##
-    Módulo para atualização do PowerShell usando Winget e Chocolatey como fallback.
-    Usa cache local (offline-first) para garantir maior eficiência.
+<#
+.SYNOPSIS
+    PowerShell update script.
+
+.DESCRIPTION
+    This script is responsible for updating the PowerShell using the Winget package manager and Chocolatey as a fallback.
 #>
 
 # Importa os módulos utilitários necessários
 foreach ($script in @(
-    "$PSScriptRoot/../../utils/logging.ps1",
-    "$PSScriptRoot/../../utils/cmdlets/install.ps1",
-    "$PSScriptRoot/../../utils/cmdlets/exec.ps1"
+    "$global:ScriptRoot/utils/logging.ps1",
+    "$global:ScriptRoot/utils/cmdlet/install.ps1",
+    "$global:ScriptRoot/utils/cmdlet/exec.ps1"
 )) {
     if (Test-Path $script) { . $script }
     else {
