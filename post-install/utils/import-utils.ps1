@@ -1,19 +1,19 @@
 <#
-.NOTES
-    File Name      : ./utils/import.ps1
-    Author         : Rodrigo Gargani Oliveira
-    Prerequisite   : >= PowerShell 5.1.19041.5607 (Desktop)
 .SYNOPSIS
     Import script.
 .DESCRIPTION
     This script is responsible for importing the necessary utility modules.
+.NOTES
+    File Name      : ./utils/import-utils.ps1
+    Author         : Rodrigo Gargani Oliveira
+    Prerequisite   : >= PowerShell 5.1.19041.5607 (Desktop)
 #>
 
 # Conditional import of the necessary utility modules
 $paths = @(
   "utils/logging.ps1", # Need to be imported first
-  "utils/cmdlet/install.ps1",
-  "utils/cmdlet/exec.ps1"
+  "utils/get-resource-status.ps1",
+  "utils/install-resource.ps1"
 )
 
 foreach ($relativePath in $paths) {

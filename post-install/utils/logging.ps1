@@ -1,8 +1,4 @@
 <#
-.NOTES
-    File Name      : ./utils/logging.ps1
-    Author         : Rodrigo Gargani Oliveira
-    Prerequisite   : >= PowerShell 5.1.19041.5607 (Desktop)
 .SYNOPSIS
     Provides logging functionality for the post-install script.
 .DESCRIPTION
@@ -17,6 +13,10 @@
     Write-Log -Message "An error occurred while processing the data" -Type "ERROR"
     Write-Log "Operation completed"
     Write-Log "[ERROR] Operation canceled" "ERROR"
+.NOTES
+    File Name      : ./utils/logging.ps1
+    Author         : Rodrigo Gargani Oliveira
+    Prerequisite   : >= PowerShell 5.1.19041.5607 (Desktop)
 #>
 
 # Ensure the logs directory exists.
@@ -59,3 +59,6 @@ function Write-Log {
     Write-Host $logMessage -BackgroundColor $backgroundColor -ForegroundColor Black
     Add-Content -Path $global:LogFile -Value $logMessage
 }
+
+# Export the Write-Log function
+Export-ModuleMember -Function Write-Log
