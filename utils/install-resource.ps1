@@ -83,7 +83,7 @@ function Install-Resource {
               catch {
                   Write-Log "Winget failed to install '$ResourceName'. Attempting to install with Chocolatey..." "WARN"
                   if ($ChocoPackageId) {
-                      choco install $ChocoPackageId -c $cacheDir -y --force | Out-Null
+                      Start-Process choco -ArgumentList "install $ChocoPackageId -c $cacheDir -y --force --params 'ALLUSERS=1'" -NoNewWindow -Wait -PassThru -ErrorAction Stop | Out-Null
                       if ($LASTEXITCODE -eq 0) {
                           Write-Log "Software '$ResourceName' installed successfully with chocolatey." "SUCCESS"
                       } else {
