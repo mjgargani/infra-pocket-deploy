@@ -2,7 +2,7 @@
 .NOTES
     File Name      : ./main.ps1
     Author         : Rodrigo Gargani Oliveira
-    Prerequisite   : >= PowerShell 5.1.19041.5607 (Desktop)cd 
+    Prerequisite   : >= PowerShell 5.1.19041.5607 (Desktop) 
 .SYNOPSIS
     Post-install main script.
 .DESCRIPTION

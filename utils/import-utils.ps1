@@ -27,8 +27,8 @@ foreach ($relativePath in $paths) {
         Write-Log -Message $message -Type "ERROR"
       } catch {
         Write-Host $message -BackgroundColor Red
-        exit 1
       }
+      break
       exit 1
     }
 }

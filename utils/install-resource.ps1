@@ -53,10 +53,10 @@ function Install-Resource {
   )
 
   # Ensure the cache directory exists
-  # [string]$cacheDir = Join-Path $global:ScriptRoot "cache"
-  # if (-not (Test-Path $cacheDir)) {
-  #     New-Item -ItemType Directory -Path $cacheDir | Out-Null
-  # }
+  [string]$cacheDir = Join-Path $global:ScriptRoot "cache"
+  if (-not (Test-Path $cacheDir)) {
+      New-Item -ItemType Directory -Path $cacheDir | Out-Null
+  }
 
   # Verify if the resource is installed
   [bool]$resourceInstalled = if ($ModuleName) { Get-ResourceStatus -ResourceName $ResourceName -ModuleName $ModuleName } else { Get-ResourceStatus -ResourceName $ResourceName }
@@ -67,15 +67,15 @@ function Install-Resource {
       Write-Log "Installing resource '$ResourceName'..."
       try {
           if ($PSCmdlet.ParameterSetName -eq 'Module' -and -not $resourceInstalled) {
-              Set-PSRepository -Name "PSGallery" -InstallationPolicy Trusted
-              Install-Module -Name $ModuleName -MinimumVersion $MinimumVersion -Force -Scope AllUsers -ErrorAction Stop
-              Write-Log "Module '$ModuleName' installed successfully."
+              Set-PSRepository -Name "PSGallery" -InstallationPolicy Trusted | Out-Null
+              Install-Module -Name $ModuleName -MinimumVersion $MinimumVersion -Force -Scope AllUsers -ErrorAction Stop | Out-Null
+              Write-Log "Module '$ModuleName' installed successfully." "SUCCESS"
           }
           elseif ($PSCmdlet.ParameterSetName -eq 'Software' -and $PackageId -and -not $resourceInstalled) {
               try {
-                  winget install --id $PackageId --silent --accept-package-agreements --accept-source-agreements
+                  winget install --id $PackageId --silent --accept-package-agreements --accept-source-agreements | Out-Null
                   if ($LASTEXITCODE -eq 0) {
-                      Write-Log "Software '$ResourceName' installed successfully with winget."
+                      Write-Log "Software '$ResourceName' installed successfully with winget." "SUCCESS"
                   } else {
                       throw "Winget failed to install '$ResourceName'."
                   }
@@ -83,9 +83,9 @@ function Install-Resource {
               catch {
                   Write-Log "Winget failed to install '$ResourceName'. Attempting to install with Chocolatey..." "WARN"
                   if ($ChocoPackageId) {
-                      choco install $ChocoPackageId -y
+                      choco install $ChocoPackageId -c $cacheDir -y --force | Out-Null
                       if ($LASTEXITCODE -eq 0) {
-                          Write-Log "Software '$ResourceName' installed successfully with chocolatey."
+                          Write-Log "Software '$ResourceName' installed successfully with chocolatey." "SUCCESS"
                       } else {
                           Write-Log "Chocolatey failed to install '$ResourceName'." "ERROR"
                       }

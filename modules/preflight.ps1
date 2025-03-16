@@ -13,12 +13,12 @@
 try {
     if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
     [Security.Principal.WindowsBuiltInRole]::Administrator)) {
-        Write-Log "The script must be run as Administrator." "ERROR"
-        exit 1
+        throw "The script must be run as Administrator."
     }   
 }
 catch {
     Write-Log "The script must be run in a Windows environment with Administrator privileges." "ERROR"
+    break
     exit 1
 }
 
@@ -38,7 +38,6 @@ if ($currentPolicy -in @("Restricted", "RemoteSigned", "AllSigned")) {
 try {
     if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
         Write-Log "Installing winget..."
-        Write-Log "Installing WinGet PowerShell module from PSGallery..."
         Install-PackageProvider -Name NuGet -Force | Out-Null
         Install-Module -Name Microsoft.WinGet.Client -Force -Repository PSGallery -Scope AllUsers | Out-Null
         Write-Log "Using Repair-WinGetPackageManager cmdlet to bootstrap WinGet..."
@@ -56,9 +55,9 @@ catch {
 try {
     if (-not (Get-Command choco -ErrorAction SilentlyContinue)) {
         Write-Log "Installing chocolatey..."
-        Set-ExecutionPolicy Bypass -Scope Process -Force
+        Set-ExecutionPolicy Bypass -Scope Process -Force | Out-Null
         [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
-        Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+        Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1')) | Out-Null
         Write-Log "chocolatey installed successfully." "SUCCESS"
     } else {
         Write-Log "chocolatey is already installed." "WARN"
@@ -79,7 +78,7 @@ try {
 
         $upgradeProcess = Start-Process winget `
             -ArgumentList $wingetArgs `
-            -NoNewWindow -Wait -PassThru
+            -NoNewWindow -Wait -PassThru -ErrorAction Stop | Out-Null
 
         if ($upgradeProcess.ExitCode -eq 0) {
             Write-Log "PowerShell successfully updated via winget." "SUCCESS"
@@ -94,7 +93,7 @@ try {
     
     if (Get-Command choco -ErrorAction SilentlyContinue) {
         try {
-            $chocoProcess = Start-Process choco -ArgumentList "upgrade powershell-core -y" -NoNewWindow -Wait -PassThru
+            $chocoProcess = Start-Process choco -ArgumentList "upgrade powershell-core -y" -NoNewWindow -Wait -PassThru | Out-Null
             if ($chocoProcess.ExitCode -eq 0) {
                 Write-Log "PowerShell successfully updated via Chocolatey." "SUCCESS"
             } else {

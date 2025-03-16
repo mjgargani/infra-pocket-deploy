@@ -1,4 +1,5 @@
+*.log
 *.zip
 compress_project.sh
-./cache/*
-./logs/*
+cache/*
+logs/*
