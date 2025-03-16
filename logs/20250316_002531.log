@@ -1,0 +1,14 @@
+[2025-03-16 00:25:31] [INFO] Utility 'C:\Users\temp\e053-etec-peg\utils\logging.ps1' loaded
+[2025-03-16 00:25:31] [INFO] Utility 'C:\Users\temp\e053-etec-peg\utils\get-resource-status.ps1' loaded
+[2025-03-16 00:25:31] [INFO] Utility 'C:\Users\temp\e053-etec-peg\utils\install-resource.ps1' loaded
+[2025-03-16 00:25:31] [SUCCESS] Post-install script started
+[2025-03-16 00:25:31] [INFO] The current ExecutionPolicy is 'Unrestricted'. No action needed.
+[2025-03-16 00:25:31] [WARN] winget is already installed.
+[2025-03-16 00:25:31] [WARN] chocolatey is already installed.
+[2025-03-16 00:25:31] [INFO] PowerShell version 5.1.19041.5607 detected, starting upgrade via winget.
+[2025-03-16 00:25:34] [WARN] Winget failed to upgrade PowerShell. Attempting Chocolatey...
+[2025-03-16 00:25:36] [SUCCESS] PowerShell successfully updated via Chocolatey.
+[2025-03-16 00:25:36] [SUCCESS] Preflight checks completed successfully.
+[2025-03-16 00:25:36] [INFO] Installing resource '7-Zip'...
+[2025-03-16 00:25:37] [INFO] Software '7-Zip' installed successfully with winget.
+[2025-03-16 00:25:37] [INFO] Installing resource 'Node.js LTS'...

@@ -38,10 +38,12 @@ if ($currentPolicy -in @("Restricted", "RemoteSigned", "AllSigned")) {
 try {
     if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
         Write-Log "Installing winget..."
-        Invoke-WebRequest -Uri https://aka.ms/get-winget -OutFile winget.msixbundle
-        Add-AppxPackage winget.msixbundle
-        Remove-Item winget.msixbundle
-        Write-Log "winget installed successfully." "SUCCESS"
+        Write-Log "Installing WinGet PowerShell module from PSGallery..."
+        Install-PackageProvider -Name NuGet -Force | Out-Null
+        Install-Module -Name Microsoft.WinGet.Client -Force -Repository PSGallery -Scope AllUsers | Out-Null
+        Write-Log "Using Repair-WinGetPackageManager cmdlet to bootstrap WinGet..."
+        Repair-WinGetPackageManager
+        Write-Log "winget installed successfully" "SUCCESS"
     } else {
         Write-Log "winget is already installed." "WARN"
     }
@@ -70,15 +72,41 @@ catch {
 try {
     $psVersion = $PSVersionTable.PSVersion
     if ($psVersion.Major -lt 7) {
-        Write-Log "Updating PowerShell to the latest version..."
-        winget install --id Microsoft.Powershell --silent --accept-package-agreements --accept-source-agreements
-        Write-Log "PowerShell updated successfully." "SUCCESS"
+        Write-Log "PowerShell version $psVersion detected, starting upgrade via winget."
+
+        # Accept the license agreements and disable interactivity
+        $wingetArgs = "upgrade --id Microsoft.PowerShell --accept-package-agreements --accept-source-agreements --disable-interactivity --silent"
+
+        $upgradeProcess = Start-Process winget `
+            -ArgumentList $wingetArgs `
+            -NoNewWindow -Wait -PassThru
+
+        if ($upgradeProcess.ExitCode -eq 0) {
+            Write-Log "PowerShell successfully updated via winget." "SUCCESS"
+        } else {
+            throw "Winget exited with error code $($upgradeProcess.ExitCode)."
+        }
     } else {
-        Write-Log "PowerShell is already up to date." "WARN"
+        Write-Log "PowerShell is already up to date (version $psVersion)." "INFO"
     }
-}
-catch {
-    Write-Log "Error updating PowerShell. Details: $($_.Exception.Message)" "ERROR"
+} catch {
+    Write-Log "Winget failed to upgrade PowerShell. Attempting Chocolatey..." "WARN"
+    
+    if (Get-Command choco -ErrorAction SilentlyContinue) {
+        try {
+            $chocoProcess = Start-Process choco -ArgumentList "upgrade powershell-core -y" -NoNewWindow -Wait -PassThru
+            if ($chocoProcess.ExitCode -eq 0) {
+                Write-Log "PowerShell successfully updated via Chocolatey." "SUCCESS"
+            } else {
+                throw "Chocolatey exited with error code $($chocoProcess.ExitCode)."
+            }
+        } catch {
+            Write-Log "Error updating PowerShell via Chocolatey: $($_.Exception.Message)" "ERROR"
+        }
+    } else {
+        Write-Log "Chocolatey is not installed. Cannot update PowerShell." "ERROR"
+        Write-Log "Error updating PowerShell: $($_.Exception.Message)" "ERROR"
+    }
 }
 
 Write-Log "Preflight checks completed successfully." "SUCCESS"

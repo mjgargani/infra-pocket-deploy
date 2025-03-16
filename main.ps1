@@ -2,7 +2,7 @@
 .NOTES
     File Name      : ./main.ps1
     Author         : Rodrigo Gargani Oliveira
-    Prerequisite   : >= PowerShell 5.1.19041.5607 (Desktop)
+    Prerequisite   : >= PowerShell 5.1.19041.5607 (Desktop)cd 
 .SYNOPSIS
     Post-install main script.
 .DESCRIPTION
@@ -19,5 +19,6 @@
 Write-Log -Message "Post-install script started" -Type "SUCCESS"
 
 . (Join-Path -Path $global:ScriptRoot -ChildPath "modules/preflight.ps1") # Import the preflight module
+. (Join-Path -Path $global:ScriptRoot -ChildPath "modules/software.ps1") # Import the software module
 
 Write-Log -Message "Post-install script completed" -Type "SUCCESS"
