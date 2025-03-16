@@ -80,6 +80,3 @@ function Install-Resource {
         }
     }
 }
-
-# Export Install-Resource cmdlet
-Export-ModuleMember -Function Install-Resource

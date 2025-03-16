@@ -41,6 +41,3 @@ function Get-ResourceStatus {
       return $null -ne $software
   }
 }
-
-# Export the Get-ResourceStatus function
-Export-ModuleMember -Function Get-ResourceStatus

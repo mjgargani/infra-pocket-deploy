@@ -13,9 +13,11 @@
 [string]$global:ScriptRoot = Split-Path -Parent -Path $MyInvocation.MyCommand.Definition
 
 # Import utility module
-Import-Module (Join-Path -Path $global:ScriptRoot -ChildPath "utils/Utils.psd1")
+. (Join-Path -Path $global:ScriptRoot -ChildPath "utils/import-utils.ps1") # Import utility scripts
 
 # Main post-install script
 Write-Log -Message "Post-install script started" -Type "SUCCESS"
-# ...
+
+. (Join-Path -Path $global:ScriptRoot -ChildPath "modules/preflight.ps1") # Import the preflight module
+
 Write-Log -Message "Post-install script completed" -Type "SUCCESS"

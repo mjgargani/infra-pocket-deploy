@@ -7,7 +7,7 @@
 .PARAMETER Message
     The log message to write.
 .PARAMETER Type
-    The type of log message. Acceptable values are "INFO" or "ERROR". Default is "INFO".
+    The type of log message. Acceptable values are "INFO", "SUCCESS", "WARN", or "ERROR". Default is "INFO".
 .EXAMPLE
     Write-Log -Message "Operation started" -Type "INFO"
     Write-Log -Message "An error occurred while processing the data" -Type "ERROR"
@@ -59,6 +59,3 @@ function Write-Log {
     Write-Host $logMessage -BackgroundColor $backgroundColor -ForegroundColor Black
     Add-Content -Path $global:LogFile -Value $logMessage
 }
-
-# Export the Write-Log function
-Export-ModuleMember -Function Write-Log
