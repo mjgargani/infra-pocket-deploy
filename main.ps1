@@ -1,7 +1,7 @@
 # Post-Install Script
 
-# Software list
-$softwareList = @(
+# Dependecies
+$dependencyList = @(
   "dotnetfx",
   "KB2919355",
   "KB2919442",
@@ -11,7 +11,11 @@ $softwareList = @(
   "KB3118401",
   "vcredist-all",
   "7zip.install",
-  "git.install",
+  "git.install"
+)
+
+# Software list
+$softwareList = @(
   "7zip",
   "git",
   "nodejs-lts",
@@ -91,29 +95,94 @@ function Uninstall-Software($pkg) {
   }
 }
 
+# Create desktop shortcut function
+function Set-DesktopShortcut() {
+  $commonDesktop = [Environment]::GetFolderPath("CommonDesktopDirectory")
+  $userDesktop = [Environment]::GetFolderPath("Desktop")
+  $adminDesktops = @(
+    "C:\Users\Administrador\Desktop",
+    "C:\Users\Administrator\Desktop",
+    "C:\Users\àdm\Desktop"
+  )
+  $localAppDataPrograms = "$env:LOCALAPPDATA\Programs"
+  $startMenuPrograms = "C:\ProgramData\Microsoft\Windows\Start Menu\Programs"
+
+  # Define the search paths
+  $searchPaths = @(
+    $localAppDataPrograms,
+    $userDesktop,
+    $startMenuPrograms
+  ) + $adminDesktops
+
+  # Define the exclusion list
+  $exclusionList = @(
+    "Accessibility",
+    "Accessories",
+    "Administrative Tools",
+    "Maintenance",
+    "StartUp",
+    "System Tools",
+    "Windows PowerShell",
+    "Immersive Control Panel.lnk"
+  )
+
+  # Copy shortcuts to the common desktop
+  foreach ($path in $searchPaths) {
+    try {
+      $shortcuts = Get-ChildItem -Path $path -Recurse -Filter "*.lnk" -ErrorAction SilentlyContinue
+      foreach ($shortcut in $shortcuts) {
+        $relativePath = $shortcut.FullName.Substring($path.Length + 1)
+        if ($exclusionList -notcontains $relativePath.Split('\')[0]) {
+          $shortcutPath = Join-Path $commonDesktop $shortcut.Name
+          Copy-Item -Path $shortcut.FullName -Destination $shortcutPath -Force
+          Write-Log "Shortcut '$($shortcut.Name)' copied to $shortcutPath."
+        }
+      }
+    }
+    catch {
+      Write-Log "No shortcuts found in $path."
+    }
+  }
+}
+
+
 # Menu script
 Write-Host "Select an option:" -ForegroundColor Cyan
 Write-Host "1 - Install software"
 Write-Host "2 - Uninstall software"
-Write-Host "3 - Cancel"
+Write-Host "3 - Create common shortcuts"
+Write-Host "4 - Cancel"
 
 $option = Read-Host "Option"
 
 switch ($option) {
   "1" {
     Install-Chocolatey
+    foreach ($dependency in $dependencyList) {
+      Install-SoftwareOffline $dependency
+    }
     foreach ($software in $softwareList) {
       Install-SoftwareOffline $software
     }
   }
 
   "2" {
+    Install-Chocolatey
+    foreach ($dependency in $dependencyList) {
+      Uninstall-Software $dependency
+    }
     foreach ($software in $softwareList) {
       Uninstall-Software $software
     }
   }
 
   "3" {
+    foreach ($software in $softwareList) {
+      Set-DesktopShortcut $software 
+    }
+  }
+
+  "4" {
     Write-Log "Operation canceled."
     exit 0
   }
