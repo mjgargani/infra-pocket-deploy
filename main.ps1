@@ -2,35 +2,35 @@
 
 # Dependecies
 $dependencyList = @(
-  "dotnetfx",
-  "KB2919355",
-  "KB2919442",
-  "KB2999226",
-  "KB3033929",
-  "KB3035131",
-  "KB3118401",
-  "vcredist-all",
-  "7zip.install",
-  "git.install"
+  @{ Name = "dotnetfx"; Params = @($null) },
+  @{ Name = "KB2919355"; Params = @($null) },
+  @{ Name = "KB2919442"; Params = @($null) },
+  @{ Name = "KB2999226"; Params = @($null) },
+  @{ Name = "KB3033929"; Params = @($null) },
+  @{ Name = "KB3035131"; Params = @($null) },
+  @{ Name = "KB3118401"; Params = @($null) },
+  @{ Name = "vcredist-all"; Params = @($null) },
+  @{ Name = "7zip.install"; Params = @($null) },
+  @{ Name = "git.install"; Params = @($null) }
 )
 
 # Software list
 $softwareList = @(
-  "7zip",
-  "git",
-  "nodejs-lts",
-  "jdk8",
-  "python",
-  "vscode",
-  "googlechrome",
-  "intellijidea-community",
-  "netbeans",
-  "arduino",
-  "androidstudio",
-  "mysql",
-  "mysql.workbench",
-  "eclipse",
-  "docker-desktop"
+  @{ Name = "7zip"; Params = @($null) },
+  @{ Name = "git"; Params = @($null) },
+  @{ Name = "nodejs-lts"; Params = @($null) },
+  @{ Name = "jdk8"; Params = @($null) },
+  @{ Name = "python"; Params = @($null) },
+  @{ Name = "vscode"; Params = @($null) },
+  @{ Name = "googlechrome"; Params = @($null) },
+  @{ Name = "intellijidea-community"; Params = @($null) },
+  @{ Name = "netbeans"; Params = @($null) },
+  @{ Name = "arduino"; Params = @($null) },
+  @{ Name = "androidstudio"; Params = @($null) },
+  @{ Name = "mysql"; Params = @($null) },
+  @{ Name = "mysql.workbench"; Params = @($null) },
+  @{ Name = "eclipse"; Params = @($null) },
+  @{ Name = "docker-desktop"; Params = @($null) }
 )
 
 # Initial setup
@@ -69,16 +69,17 @@ function Install-Chocolatey {
 }
 
 # Offline software installation function
-function Install-SoftwareOffline($pkg) {
+function Install-SoftwareOffline($pkg, $params) {
+  $paramsString = $params -join " "
   if (-not (choco list --exact $pkg | Select-String "^$pkg")) {
     $localPackage = Get-ChildItem -Path "$cacheDir/$pkg.*.nupkg" | Sort-Object LastWriteTime -Descending | Select-Object -First 1
 
     if ($localPackage) {
       Write-Log "Installing $pkg from local cache."
-      choco install $pkg -s "$cacheDir" -y --ignore-checksums --force --params='/AllUsers' | Tee-Object -FilePath $logFile -Append
+      choco install $pkg -s "$cacheDir" -y --ignore-checksums --force $paramsString | Tee-Object -FilePath $logFile -Append
     } else {
       Write-Log "$pkg was not found in the local cache. Downloading and installing..."
-      choco install $pkg -y --cacheLocation="$cacheDir" --params='/AllUsers' | Tee-Object -FilePath $logFile -Append
+      choco install $pkg -c="$cacheDir" -y --ignore-checksums --force $paramsString | Tee-Object -FilePath $logFile -Append
     }
   } else {
     Write-Log "$pkg is already installed."
@@ -145,52 +146,118 @@ function Set-DesktopShortcut() {
   }
 }
 
+# Clean up unwanted shortcuts function
+function Remove-Shortcuts() {
+  $commonDesktop = [Environment]::GetFolderPath("CommonDesktopDirectory")
+  $cleanupList = @(
+    "7-Zip Help.lnk",
+    "Git Release Notes.lnk",
+    "Install Additional Tools for Node.js.lnk",
+    "Python 3.13 Module Docs (64-bit).lnk",
+    "Uninstall Node.js.lnk",
+    "WSL Settings.lnk"
+  )
 
-# Menu script
-Write-Host "Select an option:" -ForegroundColor Cyan
-Write-Host "1 - Install software"
-Write-Host "2 - Uninstall software"
-Write-Host "3 - Create common shortcuts"
-Write-Host "4 - Cancel"
-
-$option = Read-Host "Option"
-
-switch ($option) {
-  "1" {
-    Install-Chocolatey
-    foreach ($dependency in $dependencyList) {
-      Install-SoftwareOffline $dependency
+  foreach ($shortcut in $cleanupList) {
+    $shortcutPath = Join-Path $commonDesktop $shortcut
+    if (Test-Path $shortcutPath) {
+      Remove-Item $shortcutPath -Force
+      Write-Log "Removed unwanted shortcut '$shortcutPath'."
     }
-    foreach ($software in $softwareList) {
-      Install-SoftwareOffline $software
-    }
-  }
-
-  "2" {
-    Install-Chocolatey
-    foreach ($dependency in $dependencyList) {
-      Uninstall-Software $dependency
-    }
-    foreach ($software in $softwareList) {
-      Uninstall-Software $software
-    }
-  }
-
-  "3" {
-    foreach ($software in $softwareList) {
-      Set-DesktopShortcut $software 
-    }
-  }
-
-  "4" {
-    Write-Log "Operation canceled."
-    exit 0
-  }
-
-  Default {
-    Write-Log "Invalid option. Operation canceled."
-    exit 1
   }
 }
 
-Write-Log "Operation completed."
+# Post-Install configuration function
+function Set-PostConfig {
+  Write-Log "[INFO] Post-Install Configuration"
+
+  # Arduino IDE portable mode
+  $arduinoPath = "C:\Users\Administrador\AppData\Local\Programs\Arduino IDE"
+  $portablePath = "$arduinoPath\portable"
+  if (Test-Path $arduinoPath -and -not (Test-Path $portablePath)) {
+      New-Item -ItemType Directory -Path $portablePath -Force | Out-Null
+      Write-Log "[OK] Portable mode activated in $portablePath"
+  } else {
+      Write-Log "[INFO] Portable mode already activated"
+  }
+
+  # ENV VARS for Android SDK
+  $androidSDKPath = "C:\Android\sdk"
+  $androidConfigPath = "C:\Common\AndroidConfig"
+  
+  [System.Environment]::SetEnvironmentVariable("ANDROID_HOME", $androidSDKPath, [System.EnvironmentVariableTarget]::Machine)
+  [System.Environment]::SetEnvironmentVariable("ANDROID_USER_HOME", $androidConfigPath, [System.EnvironmentVariableTarget]::Machine)
+  [System.Environment]::SetEnvironmentVariable("GRADLE_USER_HOME", "$androidConfigPath\.gradle", [System.EnvironmentVariableTarget]::Machine)
+  
+  Write-Log "[OK] Android Studio ENV VARS configurated"
+  
+  # Verify ENV VARS
+  $envVars = @("ANDROID_HOME", "ANDROID_USER_HOME", "GRADLE_USER_HOME")
+  foreach ($var in $envVars) {
+      $value = [System.Environment]::GetEnvironmentVariable($var, "Machine")
+      Write-Log "[CHECK] $var = $value"
+  }
+  
+  Write-Log "[INFO] Post-Install Configuration completed"
+}
+
+
+# Menu script
+while ($option -ne "4") {
+  Clear-Host
+  Write-Host "mjgargani's Post-Install Script" -ForegroundColor Green
+  Write-Host "---------------------------------" -ForegroundColor Green
+
+  Write-Host "Select an option:" -ForegroundColor Cyan
+  Write-Host "1 - Install software"
+  Write-Host "2 - Uninstall software"
+  Write-Host "3 - Create common shortcuts"
+  Write-Host "4 - Cancel"
+  Write-Host "---------------------------------" -ForegroundColor Green
+
+  $option = Read-Host "Option"
+
+  switch ($option) {
+    "1" {
+      Install-Chocolatey
+      foreach ($dependency in $dependencyList) {
+        Install-SoftwareOffline $dependency.Name $dependency.Params
+      }
+      foreach ($software in $softwareList) {
+        Install-SoftwareOffline $software.Name $software.Params
+      }
+      Set-PostConfig
+    }
+
+    "2" {
+      Install-Chocolatey
+      foreach ($dependency in $dependencyList) {
+        Uninstall-Software $dependency.Name
+      }
+      foreach ($software in $softwareList) {
+        Uninstall-Software $software.Name
+      }
+    }
+
+    "3" {
+      foreach ($software in $softwareList) {
+        Set-DesktopShortcut $software 
+      }
+      Remove-Shortcuts
+    }
+
+    "4" {
+      Write-Log "Operation canceled."
+      Start-Sleep -Seconds 1
+    }
+
+    Default {
+      Write-Log "Invalid option. Operation canceled."
+      Start-Sleep -Seconds 1
+    }
+  }
+}
+
+Write-Log "Operation completed."  
+Start-Sleep -Seconds 1
+exit 0
