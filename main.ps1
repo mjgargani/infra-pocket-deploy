@@ -201,59 +201,124 @@ function Set-PostConfig {
   Write-Log "[INFO] Post-Install Configuration completed"
 }
 
+function Install-ReactNavite {
+  Write-Log "Installing React Native CLI..."
+  # Install Python
+  Write-Log "Installing Python..."
+  $pythonInstaller = "$cacheDir\python-3.13.2-amd64.exe"
+  if (Test-Path $pythonInstaller) {
+    Start-Process -FilePath $pythonInstaller -ArgumentList "/quiet InstallAllUsers=1 PrependPath=1" -Wait
+    Write-Log "Python installed successfully."
+  } else {
+    Write-Log "Python installer not found in cache. Operation aborted."
+    return
+  }
+
+  # Install OpenJDK
+  Write-Log "Installing OpenJDK for all users..."
+  $openJDKInstaller = "$cacheDir\OpenJDK21U-jdk_x64_windows_hotspot_21.0.6_7.msi"
+  if (Test-Path $openJDKInstaller) {
+    Start-Process -FilePath "msiexec.exe" -ArgumentList "/i `"$openJDKInstaller`" /quiet /norestart ALLUSERS=1" -Wait
+    Write-Log "OpenJDK installed successfully for all users."
+  } else {
+    Write-Log "OpenJDK installer not found in cache. Operation aborted."
+    return
+  }
+
+  # Install React Native CLI github/halzzy
+  Write-Log "Installing React Native CLI..."
+  $reactNativeInstaller = "$cacheDir\React_Native_Installer.exe"
+  if (Test-Path $reactNativeInstaller) {
+    Start-Process -FilePath $reactNativeInstaller -ArgumentList "/S" -Wait
+    Write-Log "React Native CLI installed successfully."
+  } else {
+    Write-Log "React Native installer not found in cache. Operation aborted."
+    return
+  }
+  Write-Log "React Native CLI installed."
+}
+
+# Confirm script
+function Confirm-Selection{
+  $confirm = Read-Host "Are you confirm the operation? (y/N)"
+  if (-not $confirm) {
+    $confirm = "N"
+  }
+  if (-not $confirm -or @('N', 'n') -contains $confirm) {
+    Write-Log "Returning to menu..."
+    Start-Sleep -Seconds 1
+    return $false
+  } elseif (@('Y', 'y') -contains $confirm) {
+    Write-Log "Starting operation..."
+    Start-Sleep -Seconds 1
+    return $true
+  } else {
+    Write-Log "Invalid input. Returning to menu..."
+    Start-Sleep -Seconds 1
+    return $false
+  }
+}
+
 
 # Menu script
-while ($option -ne "4") {
+while ($option -ne "5") {
   Clear-Host
   Write-Host "mjgargani's Post-Install Script" -ForegroundColor Green
   Write-Host "---------------------------------" -ForegroundColor Green
 
   Write-Host "Select an option:" -ForegroundColor Cyan
-  Write-Host "1 - Install software"
-  Write-Host "2 - Uninstall software"
-  Write-Host "3 - Create common shortcuts"
-  Write-Host "4 - Cancel"
+  Write-Host "1 - Install software (Chocolatey)"
+  Write-Host "2 - Install React Native CLI"
+  Write-Host "3 - Uninstall software (Chocolatey)"
+  Write-Host "4 - Create common shortcuts"
+  Write-Host "5 - Cancel"
   Write-Host "---------------------------------" -ForegroundColor Green
 
   $option = Read-Host "Option"
-
-  switch ($option) {
-    "1" {
-      Install-Chocolatey
-      foreach ($dependency in $dependencyList) {
-        Install-SoftwareOffline $dependency.Name $dependency.Params
+  $confirm = Confirm-Selection
+  if ($true) {
+    switch ($option) {
+      "1" {
+        Install-Chocolatey
+        foreach ($dependency in $dependencyList) {
+          Install-SoftwareOffline $dependency.Name $dependency.Params
+        }
+        foreach ($software in $softwareList) {
+          Install-SoftwareOffline $software.Name $software.Params
+        }
+        Set-PostConfig
       }
-      foreach ($software in $softwareList) {
-        Install-SoftwareOffline $software.Name $software.Params
-      }
-      Set-PostConfig
-    }
 
-    "2" {
-      Install-Chocolatey
-      foreach ($dependency in $dependencyList) {
-        Uninstall-Software $dependency.Name
+      "2" {
+        Install-ReactNavite
       }
-      foreach ($software in $softwareList) {
-        Uninstall-Software $software.Name
+
+      "3" {
+        Install-Chocolatey
+        foreach ($dependency in $dependencyList) {
+          Uninstall-Software $dependency.Name
+        }
+        foreach ($software in $softwareList) {
+          Uninstall-Software $software.Name
+        }
       }
-    }
 
-    "3" {
-      foreach ($software in $softwareList) {
-        Set-DesktopShortcut $software 
+      "4" {
+        foreach ($software in $softwareList) {
+          Set-DesktopShortcut $software
+        }
+        Remove-Shortcuts
       }
-      Remove-Shortcuts
-    }
 
-    "4" {
-      Write-Log "Operation canceled."
-      Start-Sleep -Seconds 1
-    }
+      "5" {
+        Write-Log "Operation canceled."
+        Start-Sleep -Seconds 1
+      }
 
-    Default {
-      Write-Log "Invalid option. Operation canceled."
-      Start-Sleep -Seconds 1
+      Default {
+        Write-Log "Invalid option. Returning to menu..."
+        Start-Sleep -Seconds 1
+      }
     }
   }
 }
