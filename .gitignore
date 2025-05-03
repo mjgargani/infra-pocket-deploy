@@ -1,5 +1,8 @@
 *.log
 *.zip
+*.env
+*.env.production
+*.env.local
+*.env.development
+*.env.test
 compress_project.sh
-cache/*
-logs/*
