@@ -1,0 +1,9 @@
+pm_api_url    = "https://10.0.0.2:8006/api2/json"
+pm_user       = "terraform@pve"
+pm_password   = "changeme"
+target_node   = "pve"
+template_name = "ubuntu-template"
+vm_id         = 102
+vm_name       = "app"
+ip_address    = "10.0.0.5"
+ssh_key       = "~/.ssh/id_rsa.pub"

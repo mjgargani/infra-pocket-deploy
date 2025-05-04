@@ -6,3 +6,4 @@
 *.env.development
 *.env.test
 compress_project.sh
+cert/*
