@@ -2,9 +2,14 @@ services:
   nginx-proxy:
     image: nginx:alpine
     container_name: nginx-proxy
+    env_file:
+      - ../environment/nginx.env
     ports:
-      - "80:80"
-      - "37777:37777"
+      - ${NGINX_PORT_HTTP}
+      - ${NGINX_PORT_HTTPS}
+      - ${NGINX_}
+      - ${NGINX_IP_TCP_FORWARD}
+    restart: always
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
       - ./default.conf:/etc/nginx/conf.d/default.conf:ro
@@ -14,76 +19,84 @@ services:
     depends_on:
       forgejo:
         condition: service_started
-      # yacht:
-      #   condition: service_started
-      # mysql:
-      #   condition: service_healthy
-      # adminer:
-      #   condition: service_started
+      yacht:
+        condition: service_started
+      mysql:
+        condition: service_healthy
+      adminer:
+        condition: service_started
 
   forgejo:
     image: codeberg.org/forgejo/forgejo:1.21.11-1
     container_name: forgejo
+    env_file:
+      - ../environment/forgejo.env
     ports:
-      - "2222:22"
-    environment:
-      - USER_UID=1000
-      - USER_GID=1000
-      - FORGEJO__server__ROOT_URL=http://git.domain.local/
+      - ${FORGEJO_PORTS}
+    # environment:
+    #   - USER_UID=1000
+    #   - USER_GID=1000
+    #   - FORGEJO__server__ROOT_URL=${FORGEJO_HOST}
     volumes:
       - forgejo_data:/data
     networks:
       - proxy
 
-  # yacht:
-  #   image: selfhostedpro/yacht
-  #   container_name: yacht
-  #   ports:
-  #     - "8000:8000"
-  #   volumes:
-  #     - yacht_data:/config
-  #     - /var/run/docker.sock:/var/run/docker.sock
-  #   networks:
-  #     - proxy
+  yacht:
+    image: selfhostedpro/yacht
+    container_name: yacht
+    env_file:
+      - ../environment/yacht.env
+    ports:
+      - ${YACHT_PORTS}
+    volumes:
+      - yacht_data:/config
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - proxy
 
-  # mysql:
-  #   image: mysql:8.0
-  #   container_name: mysql
-  #   restart: always
-  #   ports:
-  #     - "3306:3306"
-  #   environment:
-  #     MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-  #     MYSQL_DATABASE: ${MYSQL_DATABASE}
-  #     MYSQL_USER: ${MYSQL_USER}
-  #     MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-  #     TZ: ${MYSQL_TZ}
-  #   volumes:
-  #     - mysql_data:/var/lib/mysql
-  #   networks:
-  #     - proxy
-  #   healthcheck:
-  #     test: ["CMD-SHELL", "mysqladmin ping -uroot -p$$MYSQL_ROOT_PASSWORD || exit 1"]
-  #     interval: 10s
-  #     timeout: 5s
-  #     retries: 5
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    restart: always
+    env_file:
+      - ../environment/mysql.env
+    ports:
+      - ${MYSQL_PORTS}
+    # environment:
+    #   - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+    #   - MYSQL_DATABASE=${MYSQL_DATABASE}
+    #   - MYSQL_USER=${MYSQL_USER}
+    #   - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - proxy
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -uroot -p$MYSQL_ROOT_PASSWORD || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
 
-  # adminer:
-  #   image: adminer
-  #   container_name: adminer
-  #   restart: always
-  #   ports:
-  #     - "8080:8080"
-  #   networks:
-  #     - proxy
-  #   depends_on:
-  #     mysql:
-  #       condition: service_healthy
+  adminer:
+    image: adminer
+    container_name: adminer
+    restart: always
+    env_file:
+      - ../environment/adminer.env
+    ports:
+      - ${ADMINER_PORTS}
+    networks:
+      - proxy
+    depends_on:
+      mysql:
+        condition: service_healthy
 
 volumes:
   forgejo_data:
-  # yacht_data:
-  # mysql_data:
+  yacht_data:
+  mysql_data:
 
 networks:
   proxy:
