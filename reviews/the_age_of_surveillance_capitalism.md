@@ -72,3 +72,9 @@ A autora compara o Google com a GM (General Motors), na mudança de paradigma ca
 A autora aponta a ideia daquilo que surge de forma inesperada, sem precedentes, como eram as "carruagens sem cavalos" e como a nova economia de vigilância gera essa mesma percepção / impacto. Aponta que, entre 2006 e 2011, o que poderia ser entendido como "desvios da política mais comum" na verdade, tomavam forma naquilo que ela viria formular como uma nova lógica de acumulação. Aponta ainda, que nós ficamos dependentes de categorias como "monopólio" e "privacidade", ao confrontar essa nova realidade.
 
 > IA: A primeira leitura do usuário é interpretada pela máquina como “a autora aponta a ideia daquilo que surge de forma inesperada, sem precedentes, como eram as carruagens sem cavalos...". O grifo da IA, no entanto, aponta que pode-se afirmar que Zuboff está elaborando um argumento epistemológico profundo sobre a inadequação de categorias herdadas diante de fenômenos históricos inéditos, propondo uma ruptura teórica e analítica diante do avanço de um novo regime de acumulação.
+
+---
+
+# Disclaimer: Pós redução de escopo
+
+---
