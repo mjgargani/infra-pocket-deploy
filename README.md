@@ -8,3 +8,7 @@ Você é livre para:
 - Compartilhar e modificar, desde que mantenha a mesma licença.
 
 ⚠️ Embora este repositório forneça automações para configurar o Windows Server, **nenhum conteúdo proprietário da Microsoft está incluído** nem redistribuído aqui. O projeto opera apenas com código aberto e documentação técnica.
+
+## Embasamento teórico e técnico
+
+Consultar: https://github.com/mjgargani/reviews

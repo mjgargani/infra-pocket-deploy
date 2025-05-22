@@ -1,0 +1,14 @@
+* Deadline 2025-06-16 
+* Considerando encerramento do trabalho vinculado no estudo de caso (fim de contrato)
+[] Produzir documentação sobre análise de regra de negócio e boas práticas;
+[] Produzir documentação de implementação:
+  [] Requisitos do Baremetal (Usar implementação atual como ref.);
+  [] Requisitos do S.O utilizado no Baremetal (ProxMox);
+  [] Passo-a-passo da implementação (Com imagens);
+  [] Proposta de serviços simples e especializados (VMs):
+    [] FIREWALL, DHCP (DHCP Pool ou VLAN - Se disponível), Fixação de IPs sensíveis, DNS Recursivo, Bloqueio de sites e Failover (OPNsense);
+    [] Active Directory (Usuários e GPOs), DNS Autoritativo local `.domain.local` e emissão de CAs (Autoridade de Certificações) para acesso seguro dos serviços (Windows Server ou Linux com Samba4);
+    [] Máquina para serviços de todos os tipos (Git; DB; Biblivre; Wikis; Ou outras demandas da instituição);
+    [] Integração do maior número de serviços possível via LDAPs (Requer certificação);
+  [] Outras orientações sobre possibilidades (Funcionamento do failover utilizando adaptadores usb-ethernet; Acesso remoto via VPN segura - Tailscale; Monitoramento; Srv. de arquivos);
+    
