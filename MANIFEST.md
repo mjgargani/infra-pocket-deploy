@@ -1,4 +1,6 @@
 # MANIFEST.md  
+https://chatgpt.com/share/682cb956-bb94-8013-9281-c0b9aeace9dd
+
 **Rodrigo Gargani Oliveira**  
 *14 de Maio de 2025*
 
